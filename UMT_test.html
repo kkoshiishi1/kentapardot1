@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>UTMパラメータ保持ページ</title>
+</head>
+<body>
+    <h1>UTMパラメータ保持テストページ</h1>
+    <p>このページにUTMパラメータ付きのURLでアクセスしてください。</p>
+    <p>例: <code>https://yourdomain.com/test.html?utm_source=google_ad&utm_medium=cpc&utm_campaign=winter_sale</code></p>
+    <div id="status"></div>
+    <div id="stored_values"></div>
+    <script>
+        // 取得・保持したいUTMパラメータのリスト
+        const utm_keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+        /**
+         * URLからクエリパラメータを取得し、ローカルストレージに保存する関数
+         * (既存の値がある場合は上書きしない)
+         */
+        function persistUtmParameters() {
+            const params = new URLSearchParams(window.location.search);
+            let update_message = '<h3>処理結果:</h3>';
+            let stored_data = {};
+            // 1. ローカルストレージに既存のUTM情報があるか確認
+            const stored_utm_json = localStorage.getItem('initial_utm_params');
+            if (stored_utm_json) {
+                stored_data = JSON.parse(stored_utm_json);
+                update_message += '<p style="color: blue;">✅ 既存のUTM情報が見つかりました。新しい値で上書きしません。</p>';
+            } else {
+                update_message += '<p style="color: green;">🆕 新しいUTM情報が見つかりました。ローカルストレージに保存します。</p>';
+            }
+            let new_values_found = false;
+            // 2. URLパラメータをチェックし、ローカルストレージに存在しない場合のみ保存
+            utm_keys.forEach(key => {
+                const url_value = params.get(key);
+                // URLに値があり、かつ、ローカルストレージにまだ値がない場合
+                if (url_value && !stored_data[key]) {
+                    stored_data[key] = url_value;
+                    new_values_found = true;
+                } else if (stored_data[key]) {
+                    // ローカルストレージに値がある場合（URLに値があってもなくても）
+                    update_message += `<p>　- ${key}: <strong>${stored_data[key]}</strong> (保持)</p>`;
+                } else {
+                    // URLにもストレージにも値がない場合
+                    update_message += `<p>　- ${key}: (値なし)</p>`;
+                }
+            });
+            // 3. 新しい値が格納された場合、ローカルストレージを更新
+            if (new_values_found || !stored_utm_json) {
+                localStorage.setItem('initial_utm_params', JSON.stringify(stored_data));
+            }  
+            // 4. ステータス表示を更新
+            document.getElementById('status').innerHTML = update_message;
+
+            // 5. 現在保存されている値を表示
+            const current_stored_json = localStorage.getItem('initial_utm_params');
+            document.getElementById('stored_values').innerHTML = `
+                <h3>現在ローカルストレージに保存されているデータ:</h3>
+                <pre>${current_stored_json ? current_stored_json : 'データなし'}</pre>
+            `;
+        }
+
+        // ページ読み込み時に実行
+        persistUtmParameters();
+    </script>
+</body>
+</html>
