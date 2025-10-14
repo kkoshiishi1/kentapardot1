@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>UTMパラメータ Cookie保存テストページ</title>
+</head>
+<body>
+
+    <h1>UTMパラメータ Cookie保存テストページ</h1>
+    <p>このページにUTMパラメータ付きのURLでアクセスしてください。</p>
+    <p>例: <code>https://yourdomain.com/test.html?utm_source=cookie_src&utm_medium=cookie_med</code></p>
+    
+    <div id="status"></div>
+    <div id="stored_values"></div>
+
+    <script>
+        // --- Cookie操作のためのヘルパー関数 ---
+
+        // Cookieから特定の値を取得する関数
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        // Cookieに値を設定する関数（有効期限: 30日）
+        function setCookie(name, value, days) {
+            let expires = "";
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/; secure"; // 'secure'はHTTPS環境でのみ動作
+        }
+
+        // --- UTMパラメータの処理ロジック ---
+
+        const utm_keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+
+        function persistUtmParameters() {
+            const params = new URLSearchParams(window.location.search);
+            let update_message = '<h3>処理結果:</h3>';
+            let stored_values = {};
+
+            let new_values_saved = false;
+
+            utm_keys.forEach(key => {
+                const url_value = params.get(key);
+                const cookie_value = getCookie('initial_' + key);
+
+                if (cookie_value) {
+                    // 既にCookieに値がある場合は保持
+                    stored_values[key] = cookie_value;
+                    update_message += `<p>　- ${key}: <strong>${cookie_value}</strong> (Cookieに保持済み)</p>`;
+                } else if (url_value) {
+                    // Cookieに値がなく、URLに値がある場合はCookieに保存
+                    setCookie('initial_' + key, url_value, 30); // 30日間有効なCookieとして設定
+                    stored_values[key] = url_value;
+                    new_values_saved = true;
+                    update_message += `<p style="color: green;">🆕 ${key}: <strong>${url_value}</strong> (Cookieに新規保存)</p>`;
+                } else {
+                    // どちらにも値がない
+                    stored_values[key] = '(値なし)';
+                    update_message += `<p>　- ${key}: (値なし)</p>`;
+                }
+            });
+
+            if (new_values_saved) {
+                update_message = '<h3>処理結果:</h3><p style="color: blue;">✅ UTMパラメータをCookieに新規保存しました。</p>' + update_message.substring(update_message.indexOf('<p>'));
+            } else if (getCookie('initial_utm_source')) {
+                 update_message = '<h3>処理結果:</h3><p style="color: blue;">✅ 既存のCookie情報が見つかりました。新しい値で上書きしません。</p>' + update_message.substring(update_message.indexOf('<p>'));
+            } else {
+                 update_message = '<h3>処理結果:</h3><p>CookieにもURLにもUTM情報が見つかりませんでした。</p>';
+            }
+
+            // ステータス表示を更新
+            document.getElementById('status').innerHTML = update_message;
+            
+            // 現在保存されている値を表示
+            let display_html = '<h3>現在Cookieに保存されているデータ:</h3><ul>';
+            utm_keys.forEach(key => {
+                const cookie_value = getCookie('initial_' + key);
+                display_html += `<li>initial_${key}: ${cookie_value ? cookie_value : 'データなし'}</li>`;
+            });
+            display_html += '</ul>';
+
+            document.getElementById('stored_values').innerHTML = display_html;
+        }
+
+        // ページ読み込み時に実行
+        persistUtmParameters();
+    </script>
+
+</body>
+</html>
