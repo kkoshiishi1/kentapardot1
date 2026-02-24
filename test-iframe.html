@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>iframe埋め込み挙動テスト</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+        }
+        .header-space {
+            /* フォームの上に巨大な空間を作る（1500px） */
+            height: 1500px;
+            background-color: #e3f2fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            border-bottom: 2px dashed #ccc;
+        }
+        .form-container {
+            /* フォームを配置するエリア */
+            width: 80%;
+            max-width: 900px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .footer-space {
+            /* フォームの下にも巨大な空間を作る（1500px） */
+            height: 1500px;
+            background-color: #ffe0b2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top: 2px dashed #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-space">
+        <h1>これは架空のWebサイト（親ページ）です</h1>
+        <p>ずーっと下へスクロールしてください 👇</p>
+    </div>
+
+    <div class="form-container">
+        <h2>お問い合わせフォーム</h2>
+        <p>ここでフォームを入力・送信してみてください。</p>
+        
+        <iframe src="https://www3.lenoxsoft.com/l/1054713/2025-07-10/8qffw5" width="100%" height="800px" type="text/html" frameborder="0" allowTransparency="true" style="border: 0"></iframe>
+    </div>
+
+    <div class="footer-space">
+        <h2>サイトのフッター領域</h2>
+        <p>送信後、画面がここまでしかスクロールされず、上にあるサンクス文言が隠れてしまうはずです。</p>
+    </div>
+
+</body>
+</html>
